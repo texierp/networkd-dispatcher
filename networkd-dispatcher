@@ -59,14 +59,15 @@ def unquote(buf, char='\\'):
         idx += 1
     return buf
 
-NetworkctlListState = collections.namedtuple('NetworkctlListState', ['idx', 'link', 'type', 'operational', 'setup'])
+NetworkctlListState = collections.namedtuple('NetworkctlListState', ['idx', 'name', 'type', 'operational', 'administrative'])
 def get_networkctl_list():
     """Update the mapping from interface index numbers to state"""
     out = subprocess.check_output([NETWORKCTL, 'list', '--no-pager', '--no-legend'])
     result = []
     for line in out.split(b'\n')[:-1]:
         fields = line.decode('ascii').split()
-        result.append(NetworkctlListState(*fields))
+        idx_s = fields.pop(0)
+        result.append(NetworkctlListState(int(idx_s), *fields))
     return result
 
 def get_networkctl_status(iface_name):
@@ -99,6 +100,7 @@ def scripts_in_path(path):
     """Given a directory name, return a sorted list of executables contained therein"""
     script_list = []
     if not os.path.exists(path):
+        logger.debug("Path %r does not exist; skipping", path)
         return []
     for filename in os.listdir(path):
         pathname = os.path.join(path, filename)
@@ -129,12 +131,18 @@ def parse_address_strings(addrs):
             ip4addrs.append(addr)
     return AddressList(ip4addrs, ip6addrs)
 
+def get_interface_data(iface, state):
+    """Return JSON-serializable data representing all state needed to run hooks for the given interface"""
+    data = {'Type': iface.type, 'OperationalState': iface.operational, 'AdministrativeState': iface.administrative}
+    data.update(get_networkctl_status(iface.name)) # Always collect what data we can.
+    if data.get('Type') == 'wlan':
+        data['ESSID'] = get_wlan_essid(iface.name)
+    return data
+
 class Dispatcher(object):
     def __init__(self, script_dir=DEFAULT_SCRIPT_DIR):
-        self.iface_list = None
-        self.ifaces_by_idx = None
-        self.ifaces_by_name = None
-        self.prior_states = {}
+        self.iface_names_by_idx = {}    # only changed on rescan
+        self.ifaces_by_name = {}        # updated on every state change
         self.script_dir = script_dir
         self._interface_scan()
 
@@ -142,9 +150,9 @@ class Dispatcher(object):
         return '<Dispatcher(%r)>' % (self.__dict__,)
 
     def _interface_scan(self):
-        self.iface_list = get_networkctl_list()
-        self.ifaces_by_idx = dict([int(i.idx), i] for i in self.iface_list)
-        self.ifaces_by_name = dict([i.link, i] for i in self.iface_list)
+        iface_list = get_networkctl_list()
+        self.iface_names_by_idx = dict([i.idx, i.name] for i in iface_list)
+        self.ifaces_by_name = dict([i.name, i] for i in iface_list)
         logger.debug('Performed interface scan; state: %r', self)
 
     def register(self, bus=None):
@@ -159,46 +167,62 @@ class Dispatcher(object):
     def trigger_all(self):
         """Immediately invoke all scripts for the last known (or initial) states for each interface"""
         logger.info('Triggering scripts for last-known state for all interfaces')
-        for iface in self.iface_list:
-            iface_name = iface.link
-            state = self.prior_states.get(iface_name, iface.operational)
+        for iface_name, iface in self.ifaces_by_name.items():
+            logger.debug('Running immediate triggers for %r', iface)
             try:
-                self.handle_state(iface_name, state)
+                self.handle_state(iface_name,
+                    administrative_state=iface.administrative,
+                    operational_state=iface.operational,
+                    force=True
+                )
             except Exception: # pylint: disable=broad-except
-                logger.exception('Error handling initial for interface %r in state %s', iface_name, state)
-
-    def get_interface_data(self, iface_name, state):
-        """Return JSON-serializable data representing all state needed to run hooks for the given interface"""
-        data = {'Type': self.ifaces_by_name[iface_name].type, 'State': state}
-        if state == 'routable':
-            data.update(get_networkctl_status(iface_name))
-        if data.get('Type') == 'wlan':
-            data['ESSID'] = get_wlan_essid(iface_name)
-        return data
+                logger.exception('Error handling initial for interface %r', iface)
 
     def get_scripts_list(self, state):
         """Return scripts for the given state"""
         return scripts_in_path(self.script_dir + "/" + state + ".d")
 
-    def handle_state(self, iface_name, state):
-        # Already handled this state? Do nothing.
-        if self.prior_states.get(iface_name) == state:
-            logger.debug('Ignoring notification for interface %r entering state %r: already known', iface_name, state)
-            return
-        self.prior_states[iface_name] = state
+    def _handle_one_state(self, iface_name, state, state_type, force=False):
+        """Process a single state change"""
+        try:
+            if state is None:
+                return
 
-        if state in STATE_IGN:
-            logger.debug('Ignored OperationalState %r seen, skipping', state)
-            return
+            prior_iface = self.ifaces_by_name.get(iface_name)
+            if prior_iface is None:
+                logger.error('Attempting to handle state for unknown interface %r', iface_name)
+                return
 
+            prior_state = getattr(prior_iface, state_type)
+            if force is False and state == prior_state:
+                logger.debug('No change represented by %s state %r for interface %r', state_type, state, iface_name)
+                return
+
+            new_iface = prior_iface._replace(**{state_type: state})
+            self.ifaces_by_name[new_iface.name] = new_iface
+
+            if state in STATE_IGN:
+                logger.debug('Ignored state %r seen for interface %r, skipping', state, iface_name)
+                return
+
+            self.run_hooks_for_state(new_iface, state)
+        except Exception: # pylint: disable=broad-except
+            logger.exception('Error handling notification for interface %r entering %s state %s', iface_name, state_type, state)
+
+    def handle_state(self, iface_name, administrative_state=None, operational_state=None, force=False):
+        self._handle_one_state(iface_name, administrative_state, 'administrative', force=force)
+        self._handle_one_state(iface_name, operational_state, 'operational', force=force)
+
+    def run_hooks_for_state(self, iface, state):
+        """Run all hooks associated with a given state"""
         # No actions to take? Do nothing.
         script_list = self.get_scripts_list(state)
-        if script_list is None:
-            logger.debug('Ignoring notification for interface %r entering state %r: no triggers', iface_name, state)
+        if not script_list:
+            logger.debug('Ignoring notification for interface %r entering state %r: no triggers', iface, state)
             return
 
         # Collect data
-        data = self.get_interface_data(iface_name, state)
+        data = get_interface_data(iface, state)
         (v4addrs, v6addrs) = parse_address_strings(data.get('Address', ()))
 
         # Set script env. variables
@@ -208,15 +232,17 @@ class Dispatcher(object):
             'ESSID': data.get('ESSID', ''),
             'IP_ADDRS': ' '.join(v4addrs),
             'IP6_ADDRS': ' '.join(v6addrs),
-            'IFACE': iface_name,
+            'IFACE': iface.name,
             'STATE': str(state),
+            'AdministrativeState': data.get('AdministrativeState', ''),
+            'OperationalState': data.get('OperationalState', ''),
             'json': json.dumps(data),
         })
 
         # run all valid scripts in the list
-        logger.debug('Running triggers for interface %r entering state %r with environment %r', iface_name, state, script_env)
+        logger.debug('Running triggers for interface %r entering state %r with environment %r', iface, state, script_env)
         for script in script_list:
-            logger.info('Invoking %r', script)
+            logger.info('Invoking %r for interface %s', script, iface.name)
             ret = subprocess.Popen(script, env=script_env).wait()
             if ret != 0:
                 logger.warning('Exit status %r from script %r invoked with environment %r', ret, script, script_env)
@@ -234,25 +260,25 @@ class Dispatcher(object):
         # http://thread.gmane.org/gmane.comp.sysutils.systemd.devel/36460
         idx = path[32:]
         idx = int(chr(int(idx[:2], 16)) + idx[2:])
-        if idx not in self.ifaces_by_idx:
+        if idx not in self.iface_names_by_idx:
             # Try to reload configuration if even an ignored message is seen
             logger.warning('Unknown index %r seen, reloading interface list', idx)
             self._interface_scan()
 
         try:
-            iface_name = self.ifaces_by_idx[idx].link
+            iface_name = self.iface_names_by_idx[idx]
         except KeyError:
             # Presumptive race condition: We reloaded, but the index is still invalid
             logger.error('Unknown interface index %r seen even after reload', idx)
             return
 
-        state = data.get('OperationalState', None)
-        if state is not None:
-            try:
-                self.handle_state(iface_name, str(state))
-            except Exception: # pylint: disable=broad-except
-                logger.exception('Error handling notification for interface %r entering state %s', iface_name, state)
-
+        operational_state = data.get('OperationalState', None)
+        administrative_state = data.get('AdministrativeState', None)
+        if (operational_state is not None) or (administrative_state is not None):
+            self.handle_state(iface_name,
+                administrative_state=str(administrative_state) if administrative_state else None,
+                operational_state=str(operational_state) if operational_state else None,
+            )
 
 
 def sd_notify(unset_environment=False, **kwargs):

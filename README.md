@@ -30,7 +30,7 @@ Scripts are executed with some environment variables set. Some of these variable
 
 - ```IFACE``` - interface that triggered the event
 
-- ```STATE``` - systemd-networkd state received by daemon
+- ```STATE``` - The destination state change for which a script is currently being invoked. May be any of the values listed as valid for `AdministrativeState` or `OperationalState`.
 
 - ```ESSID``` - for wlan connections, the ESSID the device is connected to
 
@@ -39,6 +39,10 @@ Scripts are executed with some environment variables set. Some of these variable
 - ```IP_ADDRS``` - space-delimited string of ipv4 address(es) assigned to the device (see note below)
 
 - ```IP6_ADDRS``` - space-delimited string of ipv6 address(es) assigned to the device (see note below)
+
+- ```AdministrativeState``` - One of `pending`, `configuring`, `configured`, `unmanaged`, `failed` or `linger`.
+
+- ```OperationalState``` - One of `off`, `no-carrier`, `dormant`, `carrier`, `degraded` or `routable`. (Note that hooks are not invoked for changes into `carrier` or `degraded`).
 
 - ```json``` - A JSON encoding of this program's interpretation of `networkctl status "$IFACE"`, when the event is one for which such information is available; for debug logs or inspection with JSON-aware tools such as `jq`. Exact structure details are implementation-defined and liable to change.
 
