@@ -135,6 +135,9 @@ def get_interface_data(iface, state):
     """Return JSON-serializable data representing all state needed to run hooks for the given interface"""
     data = {'Type': iface.type, 'OperationalState': iface.operational, 'AdministrativeState': iface.administrative}
     data.update(get_networkctl_status(iface.name)) # Always collect what data we can.
+    # The returned state may be different than what was read from 'networkctl list', so construct state based on the
+    # iface data. See Issue #24.
+    data['State'] = data.get('OperationalState', '') + " (" + data.get('AdministrativeState', '') + ")"
     if data.get('Type') == 'wlan':
         data['ESSID'] = get_wlan_essid(iface.name)
     return data
