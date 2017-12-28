@@ -27,25 +27,31 @@ from gi.repository import GLib as glib
 import dbus
 import dbus.mainloop.glib
 
+logger = logging.getLogger('networkd-dispatcher')
+
+
 # Detect up-front which commands we use exist
 def resolve_path(cmdname):
     for dirname in os.environ['PATH'].split(':'):
         path = os.path.join(dirname, cmdname)
         if os.path.exists(path):
             return path
+    logger.warning('No valid path found for %s', cmdname)
     return None
+
 
 # Constants
 NETWORKCTL = resolve_path('networkctl')
-IWCONFIG = resolve_path('iwconfig')
 DEFAULT_SCRIPT_DIR = '/etc/networkd-dispatcher'
+
+# Supported wireless tools
+IWCONFIG = resolve_path('iwconfig')
+IW = resolve_path('iw')
 
 LOG_FORMAT = '%(levelname)s:%(message)s'
 
 STATE_IGN = {'carrier', 'degraded', None}
 SINGLETONS = {'Type', 'ESSID', 'OperationalState'}
-
-logger = logging.getLogger('networkd-dispatcher')
 
 
 def unquote(buf, char='\\'):
@@ -86,15 +92,35 @@ def get_networkctl_status(iface_name):
             data[k].append(v)
     return data
 
+
 def get_wlan_essid(iface_name):
     """Given an interface name, return its ESSID"""
     if IWCONFIG is None:
-        logger.error('Unable to retrieve ESSID for wireless interface %r: iwconfig not installed')
+        if IW is None:
+            logger.error('Unable to retrieve ESSID for wireless interface %r: '
+                         'no supported wireless tool installed')
+            return ''
+        return iw_get_ssid(iface_name)
+    return iwconfig_get_ssid(iface_name)
+
+
+def iw_get_ssid(iface_name):
+    out = subprocess.check_output([IW, iface_name, 'link'])
+    lines = out.decode('ascii').split('\n')
+    line = [s for s in lines if 'SSID' in s]
+    if len(line) == 0:
+        logger.warning('Unable to retrieve ESSID for wireless interface %r.')
         return ''
+    essid = line[0].rsplit(" ")[1]
+    return unquote(essid)
+
+
+def iwconfig_get_ssid(iface_name):
     out = subprocess.check_output([IWCONFIG, '--', iface_name])
     line = out.split(b'\n')[0].decode('ascii')
     essid = line[line.find('ESSID:')+7:-3]
     return unquote(essid)
+
 
 def scripts_in_path(path):
     """Given a directory name, return a sorted list of executables contained therein"""
