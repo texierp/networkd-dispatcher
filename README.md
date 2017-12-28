@@ -95,8 +95,9 @@ Requirements:
 
 - python-dbus
 
-- wireless_tools
-
+- Handling of wireless interfaces requires one of the following tools to be installed:
+  - wireless_tools (providing iwconfig)
+  - iw
 
 Copy networkd-dispatcher to /usr/bin.
 
