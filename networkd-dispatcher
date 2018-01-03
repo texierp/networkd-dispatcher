@@ -180,8 +180,11 @@ class Dispatcher(object):
 
     def _interface_scan(self):
         iface_list = get_networkctl_list()
-        self.iface_names_by_idx = dict([i.idx, i.name] for i in iface_list)
-        self.ifaces_by_name = dict([i.name, i] for i in iface_list)
+        # Append new interfaces, keeping old ones around to avoid hotplug race condition (issue #20)
+        for i in iface_list:
+            if i not in self.iface_names_by_idx:
+                self.iface_names_by_idx[i.idx] = i.name
+                self.ifaces_by_name[i.name] = i
         logger.debug('Performed interface scan; state: %r', self)
 
     def register(self, bus=None):
@@ -303,11 +306,22 @@ class Dispatcher(object):
 
         operational_state = data.get('OperationalState', None)
         administrative_state = data.get('AdministrativeState', None)
+
         if (operational_state is not None) or (administrative_state is not None):
             self.handle_state(iface_name,
-                administrative_state=str(administrative_state) if administrative_state else None,
-                operational_state=str(operational_state) if operational_state else None,
-            )
+                              administrative_state=str(administrative_state) if administrative_state else None,
+                              operational_state=str(operational_state) if operational_state else None,
+                              )
+
+        # Handle interfaces that have been removed
+        if administrative_state == 'linger':
+            try:
+                self.iface_names_by_idx.pop(idx)
+                self.ifaces_by_name.pop(iface_name)
+            except KeyError:
+                logger.error('Unable to remove interface at index %r.', idx)
+            finally:
+                return
 
 
 def sd_notify(unset_environment=False, **kwargs):
