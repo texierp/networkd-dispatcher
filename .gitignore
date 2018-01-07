@@ -1,4 +1,6 @@
 etc
 *.8
-__pycache__/
+*__pycache__
 tags
+*.cache
+*.coverage
