@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # networkd-dispatcher
-#   Dispatcher service for systemd-networkd, borrowed heavily from
-#   networkd-notify.
+#   Dispatcher service for systemd-networkd
 # Copyright(c) 2016 by wave++ "Yuri D'Elia" <wavexx@thregr.org>
 # Distributed under GPLv3+ (see COPYING) WITHOUT ANY WARRANTY.
 # Copyright(c) 2018 by craftyguy "Clayton Craft" <clayton@craftyguy.net>
