@@ -7,34 +7,21 @@ sys.path.insert(0, myPath + '/../')
 import networkd_dispatcher
 
 
-# Monkeypatch methods
-def mp_networkctl_list_all_ifaces(cmd):
-    """ Provides mock output for: networkctl list --no-pager --no-legend """
-
-    out = (b"  1 lo               loopback           carrier     unmanaged\n"
-           b"  2 wlan0            wlan               routable    configured\n"
-           b"  3 eth0             eth                dormant     configured\n")
-    # subprocess.check_output returns bytes
-    return out
-
-
-def mp_networkctl_status_single_iface(cmd):
+@pytest.fixture()
+def get_input(request):
     """
-    Provides mock output for: networkctl status --no-pager --no-legend -- IFACE
+    Returns contents of the file at tests/inputs/<function name>
+    as a string
     """
-    out = (b'\xe2\x97\x8f 2: wlan0\n       '
-           b'Link File: /etc/systemd/network/10-wifi.link\n    '
-           b'Network File: /etc/systemd/network/20-wifi.network\n            '
-           b'Type: wlan\n           State: routable (configured)\n            '
-           b'Path: pci-0000:3a:00.0\n          Driver: iwlwifi\n          '
-           b'Vendor: Intel Corporation\n           '
-           b'Model: Wireless 8265 / 8275 (Dual Band Wireless-AC 8265)\n      '
-           b'HW Address: dd:ee:aa:dd:12:34 (Intel Corporate)\n         '
-           b'Address: 1.1.1.1\n             DNS: 10.10.10.1\n')
-    return out
+    in_file = os.path.join('tests', 'inputs', request.function.__name__)
+    assert os.path.exists(in_file)
+    with open(in_file) as fh:
+        in_txt = fh.read()
+    assert in_txt != ""
+    return in_txt
 
 
-def test_get_networkctl_status(monkeypatch):
+def test_get_networkctl_status(monkeypatch, get_input):
     expected = {'Link File': ['/etc/systemd/network/10-wifi.link'],
                 'Network File': ['/etc/systemd/network/20-wifi.network'],
                 'Type': 'wlan', 'State': ['routable (configured)'],
@@ -42,9 +29,10 @@ def test_get_networkctl_status(monkeypatch):
                 'Vendor': ['Intel Corporation'],
                 'Model': ['Wireless 8265 / 8275 (Dual Band Wireless-AC 8265)'],
                 'HW Address': ['dd:ee:aa:dd:12:34 (Intel Corporate)'],
-                'Address': ['1.1.1.1'], 'DNS': ['10.10.10.1']}
+                'Address': ['1.1.1.100'], 'Gateway': ['1.1.1.1'],
+                'DNS': ['10.10.10.1']}
     monkeypatch.setattr(subprocess, 'check_output',
-                        mp_networkctl_status_single_iface)
+                        lambda cmd: get_input.encode())
     assert networkd_dispatcher.get_networkctl_status('wlan0') == expected
 
 
@@ -53,7 +41,7 @@ def test_unquote():
     assert networkd_dispatcher.unquote(str) == 'ssidawesome'
 
 
-def test_get_networkctl_list(monkeypatch):
+def test_get_networkctl_list(monkeypatch, get_input):
     expected = [
         networkd_dispatcher.NetworkctlListState(idx=1, name='lo',
                                                 type='loopback',
@@ -68,17 +56,35 @@ def test_get_networkctl_list(monkeypatch):
                                                 operational='dormant',
                                                 administrative='configured')
     ]
-
     monkeypatch.setattr(subprocess, 'check_output',
-                        mp_networkctl_list_all_ifaces)
+                        lambda cmd: get_input.encode())
     assert networkd_dispatcher.get_networkctl_list() == expected
 
 
-def test_resolve_path():
-    assert (networkd_dispatcher.resolve_path('networkctl') ==
-            "/usr/bin/networkctl")
+def test_get_wlan_ssid(monkeypatch, caplog):
+    iface = 'wlp0s1'
+    monkeypatch.setattr('networkd_dispatcher.IWCONFIG', None)
+    monkeypatch.setattr('networkd_dispatcher.IW', None)
+    assert networkd_dispatcher.get_wlan_essid(iface) is ''
+    _, _, err = caplog.record_tuples[0]
+    assert err == ("Unable to retrieve ESSID for wireless "
+                   "interface " + iface + ": no supported wireless tool "
+                   "installed")
 
 
-def test_get_wlan_essid():
-    data = networkd_dispatcher.get_wlan_essid('lo')
-    assert data is not None
+def test_get_wlan_ssid_iwconfig(monkeypatch, get_input):
+    expected = 'OMG_ssid'
+    monkeypatch.setattr('networkd_dispatcher.IW', None)
+    monkeypatch.setattr('networkd_dispatcher.IWCONFIG', '/usr/bin/iwconfig')
+    monkeypatch.setattr(subprocess, 'check_output',
+                        lambda cmd: get_input.encode())
+    assert networkd_dispatcher.get_wlan_essid('wlan0') == expected
+
+
+def test_get_wlan_ssid_iw(monkeypatch, get_input):
+    expected = 'ssid123'
+    monkeypatch.setattr('networkd_dispatcher.IW', '/usr/bin/iw')
+    monkeypatch.setattr('networkd_dispatcher.IWCONFIG', None)
+    monkeypatch.setattr(subprocess, 'check_output',
+                        lambda cmd: get_input.encode())
+    assert networkd_dispatcher.get_wlan_essid('wlan0') == expected

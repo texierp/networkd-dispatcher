@@ -1,0 +1,13 @@
+● 2: wlan0
+       Link File: /etc/systemd/network/10-wifi.link
+    Network File: /etc/systemd/network/20-wifi.network
+            Type: wlan
+           State: routable (configured)
+            Path: pci-0000:3a:00.0
+          Driver: iwlwifi
+          Vendor: Intel Corporation
+           Model: Wireless 8265 / 8275 (Dual Band Wireless-AC 8265)
+      HW Address: dd:ee:aa:dd:12:34 (Intel Corporate)
+         Address: 1.1.1.100
+         Gateway: 1.1.1.1
+             DNS: 10.10.10.1
