@@ -13,4 +13,4 @@ done
 # Check for pytest-cov module
 python -c "import pytest_cov" 2>/dev/null || error "pytest-cov module not found"
 
-pytest --cov=networkd_dispatcher -q tests
+python -m pytest --cov=networkd_dispatcher -q tests
