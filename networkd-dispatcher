@@ -105,8 +105,8 @@ def get_wlan_essid(iface_name):
     """Given an interface name, return its ESSID"""
     if IWCONFIG is None:
         if IW is None:
-            logger.error('Unable to retrieve ESSID for wireless interface %r: '
-                         'no supported wireless tool installed')
+            logger.error('Unable to retrieve ESSID for wireless interface %s: '
+                         'no supported wireless tool installed' % iface_name)
             return ''
         return iw_get_ssid(iface_name)
     return iwconfig_get_ssid(iface_name)
@@ -117,7 +117,8 @@ def iw_get_ssid(iface_name):
     lines = out.decode('ascii').split('\n')
     line = [s for s in lines if 'SSID' in s]
     if len(line) == 0:
-        logger.warning('Unable to retrieve ESSID for wireless interface %r.')
+        logger.warning('Unable to retrieve ESSID for wireless interface %s.'
+                       % iface_name)
         return ''
     essid = line[0].rsplit(" ")[1]
     return unquote(essid)
