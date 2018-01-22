@@ -4,7 +4,7 @@ Networkd-dispatcher is a dispatcher daemon for systemd-networkd connection statu
 
 Desired actions (scripts) are placed into directories that reflect [systemd-networkd operational states](https://www.freedesktop.org/software/systemd/man/networkctl.html), and are executed when the daemon receives the relevant event from systemd-networkd.
 
-The deamon listens for signals from systemd-networkd over dbus, so it should be very light on resources (e.g. no polling). It is meant to be run as a system-wide daemon (as root). This allows it to be used for tasks such as starting a VPN after a connection is established.
+The daemon listens for signals from systemd-networkd over dbus, so it should be very light on resources (e.g. no polling). It is meant to be run as a system-wide daemon (as root). This allows it to be used for tasks such as starting a VPN after a connection is established.
 
 ## Usage
 
