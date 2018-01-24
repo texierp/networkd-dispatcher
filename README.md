@@ -116,6 +116,6 @@ Install networkd-dispatcher.service and start it. If networkd-dispatcher was not
 
 - charles-dyfis-net (Charles Duffy)
 
-
+- ryu0 (James Buren)
 
 A large portion of the code was leveraged from [networkd-notify](https://github.com/wavexx/networkd-notify), which was written by wavexx (Yuri D'Elia)
