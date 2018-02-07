@@ -76,7 +76,7 @@ def get_networkctl_list():
                                    '--no-legend'])
     result = []
     for line in out.split(b'\n')[:-1]:
-        fields = line.decode('ascii').split()
+        fields = line.decode('utf-8', errors='replace').split()
         idx_s = fields.pop(0)
         result.append(NetworkctlListState(int(idx_s), *fields))
     return result
@@ -90,7 +90,7 @@ def get_networkctl_status(iface_name):
     data = collections.defaultdict(list)
     oldk = None
     for line in out.split(b'\n')[1:-1]:
-        line = line.decode('ascii')
+        line = line.decode('utf-8', errors='replace')
         k = line[:16].strip() or oldk
         oldk = k
         v = line[18:].strip()
@@ -114,7 +114,7 @@ def get_wlan_essid(iface_name):
 
 def iw_get_ssid(iface_name):
     out = subprocess.check_output([IW, iface_name, 'link'])
-    lines = out.decode('ascii').split('\n')
+    lines = out.decode('utf-8', errors='replace').split('\n')
     line = [s for s in lines if 'SSID' in s]
     if len(line) == 0:
         logger.warning('Unable to retrieve ESSID for wireless interface %s.'
@@ -126,7 +126,7 @@ def iw_get_ssid(iface_name):
 
 def iwconfig_get_ssid(iface_name):
     out = subprocess.check_output([IWCONFIG, '--', iface_name])
-    line = out.split(b'\n')[0].decode('ascii')
+    line = out.split(b'\n')[0].decode('utf-8', errors='replace')
     essid = line[line.find('ESSID:')+7:-3]
     return unquote(essid)
 

@@ -32,7 +32,7 @@ def test_get_networkctl_status(monkeypatch, get_input):
                 'Address': ['1.1.1.100'], 'Gateway': ['1.1.1.1'],
                 'DNS': ['10.10.10.1']}
     monkeypatch.setattr(subprocess, 'check_output',
-                        lambda cmd: get_input.encode())
+                        lambda cmd: get_input.encode('utf-8'))
     assert networkd_dispatcher.get_networkctl_status('wlan0') == expected
 
 
@@ -57,7 +57,7 @@ def test_get_networkctl_list(monkeypatch, get_input):
                                                 administrative='configured')
     ]
     monkeypatch.setattr(subprocess, 'check_output',
-                        lambda cmd: get_input.encode())
+                        lambda cmd: get_input.encode('utf-8'))
     assert networkd_dispatcher.get_networkctl_list() == expected
 
 
@@ -77,7 +77,7 @@ def test_get_wlan_ssid_iwconfig(monkeypatch, get_input):
     monkeypatch.setattr('networkd_dispatcher.IW', None)
     monkeypatch.setattr('networkd_dispatcher.IWCONFIG', '/usr/bin/iwconfig')
     monkeypatch.setattr(subprocess, 'check_output',
-                        lambda cmd: get_input.encode())
+                        lambda cmd: get_input.encode('utf-8'))
     assert networkd_dispatcher.get_wlan_essid('wlan0') == expected
 
 
@@ -86,5 +86,5 @@ def test_get_wlan_ssid_iw(monkeypatch, get_input):
     monkeypatch.setattr('networkd_dispatcher.IW', '/usr/bin/iw')
     monkeypatch.setattr('networkd_dispatcher.IWCONFIG', None)
     monkeypatch.setattr(subprocess, 'check_output',
-                        lambda cmd: get_input.encode())
+                        lambda cmd: get_input.encode('utf-8'))
     assert networkd_dispatcher.get_wlan_essid('wlan0') == expected
