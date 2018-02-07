@@ -72,8 +72,13 @@ def unquote(buf, char='\\'):
 
 def get_networkctl_list():
     """Update the mapping from interface index numbers to state"""
-    out = subprocess.check_output([NETWORKCTL, 'list', '--no-pager',
-                                   '--no-legend'])
+    try:
+        out = subprocess.check_output([NETWORKCTL, 'list', '--no-pager',
+                                      '--no-legend'])
+    except subprocess.CalledProcessError as e:
+        logger.error('networkctl list failed: %s', e)
+        return []
+
     result = []
     for line in out.split(b'\n')[:-1]:
         fields = line.decode('utf-8', errors='replace').split()
@@ -85,9 +90,14 @@ def get_networkctl_list():
 def get_networkctl_status(iface_name):
     """Return a dictionary mapping keys to lists (or strings if
     in SINGLETONS)"""
-    out = subprocess.check_output([NETWORKCTL, 'status', '--no-pager',
-                                   '--no-legend', '--', iface_name])
     data = collections.defaultdict(list)
+    try:
+        out = subprocess.check_output([NETWORKCTL, 'status', '--no-pager',
+                                      '--no-legend', '--', iface_name])
+    except subprocess.CalledProcessError as e:
+        logger.error('Failed to get interface "%s" status: %s', iface_name, e)
+        return data
+
     oldk = None
     for line in out.split(b'\n')[1:-1]:
         line = line.decode('utf-8', errors='replace')
