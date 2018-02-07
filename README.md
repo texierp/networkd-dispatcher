@@ -118,4 +118,6 @@ Install networkd-dispatcher.service and start it. If networkd-dispatcher was not
 
 - [ryu0](https://github.com/ryu0) (James Buren)
 
+- [raharper](https://github.com/raharper) (Ryan Harper)
+
 A large portion of the code was leveraged from [networkd-notify](https://github.com/wavexx/networkd-notify), which was written by wavexx (Yuri D'Elia)
