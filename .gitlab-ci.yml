@@ -1,0 +1,10 @@
+image: base/archlinux
+
+before_script:
+  - pacman -Sy
+  - pacman -S --noconfirm python-dbus python-gobject python-coverage python-pytest-cov python-pytest dbus-glib
+  - python -V
+
+test:
+  script:
+    - bash $CI_PROJECT_DIR/tests/run.sh

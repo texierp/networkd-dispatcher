@@ -15,7 +15,7 @@ def get_input(request):
     """
     in_file = os.path.join('tests', 'inputs', request.function.__name__)
     assert os.path.exists(in_file)
-    with open(in_file) as fh:
+    with open(in_file, encoding='utf-8') as fh:
         in_txt = fh.read()
     assert in_txt != ""
     return in_txt
