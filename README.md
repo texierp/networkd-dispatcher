@@ -46,7 +46,7 @@ Scripts are executed with some environment variables set. Some of these variable
 
 - ```AdministrativeState``` - One of `pending`, `configuring`, `configured`, `unmanaged`, `failed` or `linger`.
 
-- ```OperationalState``` - One of `off`, `no-carrier`, `dormant`, `carrier`, `degraded` or `routable`.
+- ```OperationalState``` - One of `off`, `no-carrier`, `dormant`, `carrier`, `degraded` or `routable`. For more information about the network operational states exposed by systemd, see the `networkctl` manpage (`man networkctl`).
 
 - ```json``` - A JSON encoding of this program's interpretation of `networkctl status "$IFACE"`, when the event is one for which such information is available; for debug logs or inspection with JSON-aware tools such as `jq`. Exact structure details are implementation-defined and liable to change.
 
