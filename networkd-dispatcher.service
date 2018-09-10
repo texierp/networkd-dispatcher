@@ -1,8 +1,5 @@
 [Unit]
 Description=Dispatcher daemon for systemd-networkd
-DefaultDependencies=no
-After=systemd-udevd.service network-pre.target systemd-sysusers.service systemd-sysctl.service dbus.service
-Before=systemd-networkd.service
 
 [Service]
 Type=notify
@@ -12,4 +9,4 @@ ExecStart=/usr/bin/networkd-dispatcher $networkd_dispatcher_args
 EnvironmentFile=-/etc/conf.d/%p.conf
 
 [Install]
-WantedBy=systemd-networkd.service
+WantedBy=multi-user.target
