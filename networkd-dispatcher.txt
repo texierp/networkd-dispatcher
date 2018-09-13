@@ -36,8 +36,11 @@ OPTIONS
   Print command-line syntax and program options to stdout.
 
 *-S, --script-dir='SCRIPT_DIR'*::
-  Location under which to look for scripts. Defaults to
-  /etc/networkd-dispatcher.
+  Location under which to look for scripts. Like the 'PATH' environment
+  variable, this may contain multiple directories separated by : and
+  in case multiple directories have scripts with the same name, the
+  earliest directory wins. Defaults to
+  /etc/networkd-dispatcher:/usr/lib/networkd-dispatcher.
 
 *-T, --run-startup-triggers*::
   Generate events reflecting preexisting state and behavior on startup. This can
@@ -61,7 +64,7 @@ environment file for additional daemon arguments.
 
 The scripts to be run on network changes are in subdirectories 'routable.d/',
 'dormant.d/', 'no-carrier.d/', 'off.d/' inside 'SCRIPT_DIR'. The default value
-for 'SCRIPT_DIR' is '/etc/networkd-dispatcher'.
+for 'SCRIPT_DIR' is '/etc/networkd-dispatcher:/usr/lib/networkd-dispatcher'.
 
 RESOURCES
 ---------

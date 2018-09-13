@@ -40,7 +40,7 @@ def resolve_path(cmdname):
 
 # Constants
 NETWORKCTL = resolve_path('networkctl')
-DEFAULT_SCRIPT_DIR = '/etc/networkd-dispatcher'
+DEFAULT_SCRIPT_DIR = '/etc/networkd-dispatcher:/usr/lib/networkd-dispatcher'
 
 # Supported wireless tools
 IWCONFIG = resolve_path('iwconfig')
@@ -141,28 +141,41 @@ def iwconfig_get_ssid(iface_name):
     return unquote(essid)
 
 
-def scripts_in_path(path):
-    """Given a directory name, return a sorted list of executables
-    contained therein"""
+def scripts_in_path(path, subdir):
+    """Given directory names in PATH notation (separated by :), and a
+    subdirectory name, return a sorted list of executables
+    contained in that subdirectory, such that executables in earlier
+    path components override those with the same name in later path
+    components."""
     script_list = []
-    if not os.path.exists(path):
-        logger.debug("Path %r does not exist; skipping", path)
-        return []
-    for filename in os.listdir(path):
-        pathname = os.path.join(path, filename)
-        if os.path.isfile(pathname):
-            entry = os.stat(pathname)
-            # Make sure script can be executed
-            if not stat.S_IXUSR & entry.st_mode:
-                logger.error("Unable to execute script, check file mode: %s",
-                             pathname)
-            # Make sure script is owned by root
-            elif entry.st_uid != 0 or entry.st_gid != 0:
-                logger.error("Unable to execute script, check file perms: %s",
-                             pathname)
-            else:
-                script_list.append(pathname)
-    return sorted(script_list)
+    base_filenames = set()
+    for one_path in path.split(":"):
+        one_path = os.path.join(one_path, subdir)
+        if not os.path.exists(one_path):
+            logger.debug("Path %r does not exist; skipping", one_path)
+            continue
+        base_filenames.update(os.listdir(one_path))
+
+    for filename in sorted(base_filenames):
+        for one_path in path.split(":"):
+            pathname = os.path.join(one_path, subdir, filename)
+            logger.debug("Checking if %s exists as %s", filename, pathname)
+
+            if os.path.isfile(pathname):
+                entry = os.stat(pathname)
+                # Make sure script can be executed
+                if not stat.S_IXUSR & entry.st_mode:
+                    logger.error("Unable to execute script, check file mode: %s",
+                                 pathname)
+                # Make sure script is owned by root
+                elif entry.st_uid != 0 or entry.st_gid != 0:
+                    logger.error("Unable to execute script, check file perms: %s",
+                                 pathname)
+                else:
+                    script_list.append(pathname)
+                break
+
+    return script_list
 
 
 def parse_address_strings(addrs):
@@ -246,7 +259,7 @@ class Dispatcher(object):
 
     def get_scripts_list(self, state):
         """Return scripts for the given state"""
-        return scripts_in_path(self.script_dir + "/" + state + ".d")
+        return scripts_in_path(self.script_dir, state + ".d")
 
     def _handle_one_state(self, iface_name, state, state_type, force=False):
         """Process a single state change"""

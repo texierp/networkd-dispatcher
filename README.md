@@ -10,7 +10,7 @@ The daemon listens for signals from systemd-networkd over dbus, so it should be 
 
 The deamon expects that scripts are 1) executable and 2) owned by root (gid = uid = 0), and will not execute scripts that are otherwise.
 
-Scripts can be installed into these directories under ```/etc/networkd-dispatcher```:
+Scripts can be installed into these directories under ```/usr/lib/networkd-dispatcher``` for system packages, and ```/etc/networkd-dispatcher``` for local overrides:
 
 ```
 routable.d/
@@ -61,7 +61,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -S SCRIPT_DIR, --script-dir SCRIPT_DIR
                         Location under which to look for scripts [default:
-                        /etc/networkd-dispatcher]
+                        /etc/networkd-dispatcher:/usr/lib/networkd-dispatcher]
   -T, --run-startup-triggers
                         Generate events reflecting preexisting state and
                         behavior on startup [default: False]
