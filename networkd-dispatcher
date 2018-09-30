@@ -202,7 +202,8 @@ def get_interface_data(iface, state):
     """Return JSON-serializable data representing all state needed to run
     hooks for the given interface"""
     data = {'Type': iface.type, 'OperationalState': iface.operational,
-            'AdministrativeState': iface.administrative}
+            'AdministrativeState': iface.administrative,
+            "InterfaceName": iface.name}
     # Always collect what data we can.
     data.update(get_networkctl_status(iface.name))
     # The returned state may be different than what was read from
