@@ -198,7 +198,7 @@ def parse_address_strings(addrs):
     return AddressList(ip4addrs, ip6addrs)
 
 
-def get_interface_data(iface, state):
+def get_interface_data(iface):
     """Return JSON-serializable data representing all state needed to run
     hooks for the given interface"""
     data = {'Type': iface.type, 'OperationalState': iface.operational,
@@ -316,7 +316,7 @@ class Dispatcher(object):
             return
 
         # Collect data
-        data = get_interface_data(iface, state)
+        data = get_interface_data(iface)
         (v4addrs, v6addrs) = parse_address_strings(data.get('Address', ()))
 
         # Set script env. variables
