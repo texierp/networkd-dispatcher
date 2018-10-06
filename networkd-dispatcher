@@ -391,8 +391,6 @@ class Dispatcher(object):
                 self.ifaces_by_name.pop(iface_name)
             except KeyError:
                 logger.error('Unable to remove interface at index %r.', idx)
-            finally:
-                return
 
 
 def sd_notify(unset_environment=False, **kwargs):
