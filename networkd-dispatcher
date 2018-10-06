@@ -130,7 +130,7 @@ def iw_get_ssid(iface_name):
     out = subprocess.check_output([IW, iface_name, 'link'])
     lines = out.decode('utf-8', errors='replace').split('\n')
     line = [s for s in lines if 'SSID' in s]
-    if len(line) == 0:
+    if not line:
         logger.warning('Unable to retrieve ESSID for wireless interface %s.'
                        % iface_name)
         return ''
