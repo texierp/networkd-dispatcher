@@ -4,3 +4,4 @@ etc
 tags
 *.cache
 *.coverage
+.tox
