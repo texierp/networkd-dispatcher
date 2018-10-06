@@ -20,7 +20,7 @@ import stat
 import subprocess
 import sys
 
-#Try to import the dynamic glib, or try to fall back to static
+# Try to import the dynamic glib, or try to fall back to static
 try:
     from gi.repository import GLib as glib
 except ImportError:
@@ -120,7 +120,7 @@ def get_wlan_essid(iface_name):
     if IWCONFIG is None:
         if IW is None:
             logger.error('Unable to retrieve ESSID for wireless interface %s: '
-                         'no supported wireless tool installed' % iface_name)
+                         'no supported wireless tool installed', iface_name)
             return ''
         return iw_get_ssid(iface_name)
     return iwconfig_get_ssid(iface_name)
@@ -131,8 +131,8 @@ def iw_get_ssid(iface_name):
     lines = out.decode('utf-8', errors='replace').split('\n')
     line = [s for s in lines if 'SSID' in s]
     if not line:
-        logger.warning('Unable to retrieve ESSID for wireless interface %s.'
-                       % iface_name)
+        logger.warning('Unable to retrieve ESSID for wireless interface %s.',
+                       iface_name)
         return ''
     essid = line[0].rsplit(" ")[1]
     return unquote(essid)
@@ -169,12 +169,12 @@ def scripts_in_path(path, subdir):
                 entry = os.stat(pathname)
                 # Make sure script can be executed
                 if not stat.S_IXUSR & entry.st_mode:
-                    logger.error("Unable to execute script, check file mode: %s",
-                                 pathname)
+                    logger.error("Unable to execute script, check file mode: "
+                                 "%s", pathname)
                 # Make sure script is owned by root
                 elif entry.st_uid != 0 or entry.st_gid != 0:
-                    logger.error("Unable to execute script, check file perms: %s",
-                                 pathname)
+                    logger.error("Unable to execute script, check file perms: "
+                                 "%s", pathname)
                 else:
                     script_list.append(pathname)
                 break
