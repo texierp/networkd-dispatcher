@@ -78,7 +78,7 @@ def get_networkctl_list():
     """Update the mapping from interface index numbers to state"""
     try:
         out = subprocess.check_output([NETWORKCTL, 'list', '--no-pager',
-                                      '--no-legend'])
+                                       '--no-legend'])
     except subprocess.CalledProcessError as e:
         logger.error('networkctl list failed: %s', e)
         return []
@@ -97,7 +97,7 @@ def get_networkctl_status(iface_name):
     data = collections.defaultdict(list)
     try:
         out = subprocess.check_output([NETWORKCTL, 'status', '--no-pager',
-                                      '--no-legend', '--', iface_name])
+                                       '--no-legend', '--', iface_name])
     except subprocess.CalledProcessError as e:
         logger.error('Failed to get interface "%s" status: %s', iface_name, e)
         return data
