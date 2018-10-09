@@ -217,9 +217,10 @@ def get_interface_data(iface):
 
 
 class Dispatcher():
+    iface_names_by_idx = {}    # only changed on rescan
+    ifaces_by_name = {}        # updated on every state change
+
     def __init__(self, script_dir=DEFAULT_SCRIPT_DIR):
-        self.iface_names_by_idx = {}    # only changed on rescan
-        self.ifaces_by_name = {}        # updated on every state change
         self.script_dir = script_dir
         self._interface_scan()
 
