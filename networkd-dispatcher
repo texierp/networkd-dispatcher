@@ -276,7 +276,7 @@ class Dispatcher():
             prior_iface = self.ifaces_by_name.get(iface_name)
             if prior_iface is None:
                 logger.error('Attempting to handle state for unknown interface'
-                             '%r', iface_name)
+                             ' %r', iface_name)
                 return
 
             prior_state = getattr(prior_iface, state_type)
