@@ -394,7 +394,7 @@ class Dispatcher():
                 logger.error('Unable to remove interface at index %r.', idx)
 
 
-def sd_notify(unset_environment=False, **kwargs):
+def sd_notify(**kwargs):
     """Systemd sd_notify implementation for Python.
     Note: kwargs should contain the state to send to systemd"""
     if not kwargs:
@@ -421,14 +421,11 @@ def sd_notify(unset_environment=False, **kwargs):
             return 1
     # pylint: disable=broad-except
     except Exception:
-        logger.exception("Ignoring unexpected error during sd_notify()"
+        logger.exception("Ignoring unexpected error during sd_notify() "
                          "invocation")
 
     if sock:
         sock.close()
-    if unset_environment:
-        if 'NOTIFY_SOCKET' in os.environ:
-            del os.environ['NOTIFY_SOCKET']
 
     return 0
 
