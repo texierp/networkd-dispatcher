@@ -1,0 +1,11 @@
+Connected to ff:aa:3e:09:78:bc (on wlan0)
+	SSID: ssid123
+	freq: 5320
+	RX: 114686 bytes (387 packets)
+	TX: 89047 bytes (408 packets)
+	signal: -71 dBm
+	tx bitrate: 999.0 MBit/s MCS 12 40MHz short GI
+
+	bss flags:	short-slot-time
+	dtim period:	1
+	beacon int:	100
