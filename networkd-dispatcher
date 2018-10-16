@@ -22,9 +22,9 @@ import sys
 
 # Try to import the dynamic glib, or try to fall back to static
 try:
-    from gi.repository import GLib as glib
-except ImportError:
-    import glib
+    from gi.repository import GLib as glib  # pragma: no cover
+except ImportError:                         # pragma: no cover
+    import glib                             # pragma: no cover
 
 import dbus
 import dbus.mainloop.glib
