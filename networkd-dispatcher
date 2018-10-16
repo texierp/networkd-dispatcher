@@ -430,7 +430,8 @@ def sd_notify(**kwargs):
     return 0
 
 
-def main():
+def parse_args(args):
+    """Parses arguments from command line"""
     ap = argparse.ArgumentParser(description='networkd dispatcher daemon')
     ap.add_argument('-S', '--script-dir', action='store',
                     default=DEFAULT_SCRIPT_DIR,
@@ -443,7 +444,11 @@ def main():
                     help='Increment verbosity level once per call')
     ap.add_argument('-q', '--quiet', action='count', default=0,
                     help='Decrement verbosity level once per call')
-    args = ap.parse_args()
+    return ap.parse_args(args)
+
+
+def main():
+    args = parse_args(sys.argv[1:])
 
     verbosity_num = (args.verbose - args.quiet)
     if verbosity_num <= -2:
