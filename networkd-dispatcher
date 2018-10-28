@@ -485,7 +485,10 @@ def main():
     mainloop.run()
 
 
-if __name__ == '__main__':
-    main()
+def init():
+    if __name__ == '__main__':
+        main()
 
+
+init()
 # vim: ai et sts=4 sw=4 ts=4
