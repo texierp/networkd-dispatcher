@@ -52,7 +52,6 @@ IW = resolve_path('iw')
 
 LOG_FORMAT = '%(levelname)s:%(message)s'
 
-STATE_IGN = {'carrier', 'degraded', None}
 SINGLETONS = {'Type', 'ESSID', 'OperationalState'}
 
 
@@ -287,11 +286,6 @@ class Dispatcher():
 
             new_iface = prior_iface._replace(**{state_type: state})
             self.ifaces_by_name[new_iface.name] = new_iface
-
-            if state in STATE_IGN:
-                logger.debug('Ignored state %r seen for interface %r, '
-                             'skipping', state, iface_name)
-                return
 
             self.run_hooks_for_state(new_iface, state)
         # pylint: disable=broad-except

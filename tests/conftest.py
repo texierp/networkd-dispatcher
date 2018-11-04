@@ -28,7 +28,13 @@ def scripts_etc():
             "/etc/networkd-dispatcher/routable.d/99-not-important.sh",
             "/etc/networkd-dispatcher/routable.d/50-start-netdrive",
         ],
-        }
+        'carrier.d': [
+            "/etc/networkd-dispatcher/carrier.d/01-set-ip.sh",
+        ],
+        'degraded.d': [
+            "/etc/networkd-dispatcher/degraded.d/39-catch-fire.sh",
+        ],
+    }
 
 
 @pytest.fixture()
@@ -47,6 +53,13 @@ def scripts_usr():
         'routable.d': [
             "/usr/lib/networkd-dispatcher/routable.d/40-enable-ntp.sh",
             "/usr/lib/networkd-dispatcher/routable.d/enable-tracking-service.sh",
+        ],
+        'carrier.d': [
+            "/usr/lib/networkd-dispatcher/carrier.d/99-so-stuff.sh",
+            "/usr/lib/networkd-dispatcher/carrier.d/01-set-ip.sh",
+        ],
+        'degraded.d': [
+            "/usr/lib/networkd-dispatcher/degraded.d/39-catch-fire.sh",
         ],
     }
 
@@ -73,6 +86,12 @@ def scripts_etc_filenames():
             "50-start-netdrive",
             "99-not-important.sh",
         ],
+        'carrier.d': [
+            "01-set-ip.sh",
+        ],
+        'degraded.d': [
+            "39-catch-fire.sh",
+        ],
         }
 
 
@@ -93,6 +112,14 @@ def scripts_usr_filenames():
             "40-enable-ntp.sh",
             "enable-tracking-service.sh",
         ],
+        'carrier.d': [
+            "99-so-stuff.sh",
+            "01-set-ip.sh",
+        ],
+        'degraded.d': [
+            "39-catch-fire.sh",
+        ],
+
     }
 
 
@@ -121,6 +148,13 @@ def scripts_sorted():
             "/etc/networkd-dispatcher/routable.d/50-start-netdrive",
             "/etc/networkd-dispatcher/routable.d/99-not-important.sh",
             "/etc/networkd-dispatcher/routable.d/enable-tracking-service.sh",
+        ],
+        'carrier.d': [
+            "/etc/networkd-dispatcher/carrier.d/01-set-ip.sh",
+            "/usr/lib/networkd-dispatcher/carrier.d/99-so-stuff.sh",
+        ],
+        'degraded.d': [
+            "/etc/networkd-dispatcher/degraded.d/39-catch-fire.sh",
         ],
     }
 

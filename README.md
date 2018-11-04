@@ -20,6 +20,10 @@ dormant.d/
 no-carrier.d/
 
 off.d/
+
+carrier.d/
+
+degraded.d/
 ```
 
 networkd-dispatcher will execute any valid scripts in the directory that reflects the new state. 
@@ -42,7 +46,7 @@ Scripts are executed with some environment variables set. Some of these variable
 
 - ```AdministrativeState``` - One of `pending`, `configuring`, `configured`, `unmanaged`, `failed` or `linger`.
 
-- ```OperationalState``` - One of `off`, `no-carrier`, `dormant`, `carrier`, `degraded` or `routable`. (Note that hooks are not invoked for changes into `carrier` or `degraded`).
+- ```OperationalState``` - One of `off`, `no-carrier`, `dormant`, `carrier`, `degraded` or `routable`.
 
 - ```json``` - A JSON encoding of this program's interpretation of `networkctl status "$IFACE"`, when the event is one for which such information is available; for debug logs or inspection with JSON-aware tools such as `jq`. Exact structure details are implementation-defined and liable to change.
 
@@ -103,7 +107,7 @@ Copy networkd-dispatcher to /usr/bin.
 
 Create the appropriate directory structure:
 
-```$ sudo mkdir -p /etc/networkd-dispatcher/{routable,dormant,no-carrier,off}.d```
+```$ sudo mkdir -p /etc/networkd-dispatcher/{routable,dormant,no-carrier,off,carrier,degraded}.d```
 
 Install networkd-dispatcher.conf to /etc/conf.d.
 

@@ -13,8 +13,7 @@ from mock import patch
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, myPath + '/../')
 import networkd_dispatcher
-from networkd_dispatcher import (Dispatcher, NetworkctlListState, STATE_IGN,
-                                 LOG_FORMAT)
+from networkd_dispatcher import (Dispatcher, NetworkctlListState, LOG_FORMAT)
 
 try:
     from gi.repository import GLib as glib
@@ -387,19 +386,6 @@ with patch.object(networkd_dispatcher.Dispatcher, "_interface_scan",
             mock_run_hooks_for_state.assert_called_with(new_iface, 'dormant')
             assert (self.dp.ifaces_by_name[new_iface.name].operational
                     == 'dormant')
-            # Ignored state
-            for ign in STATE_IGN:
-                if ign is None:
-                    # This has already been tested
-                    continue
-                caplog.clear()
-                caplog.set_level(logging.DEBUG)
-                assert (self.dp._handle_one_state('wlan0', ign,
-                                                  'operational')
-                        is None)
-                _, _, debug = caplog.record_tuples[0]
-                assert debug == ('Ignored state \'' + ign + '\' seen for '
-                                 'interface \'wlan0\', skipping')
             # Exceptions
             caplog.clear()
             mock_run_hooks_for_state.side_effect = Exception()
