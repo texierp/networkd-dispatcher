@@ -235,6 +235,8 @@ def test_get_interface_data(monkeypatch, get_networkctl_status_out,
                                 administrative='configured')
     monkeypatch.setattr('networkd_dispatcher.get_networkctl_status',
                         lambda x: get_networkctl_status_out)
+    monkeypatch.setattr(subprocess, 'check_output',
+                        lambda cmd: get_datafile('iwconfig'))
     out = networkd_dispatcher.get_interface_data(iface)
     assert out != get_interface_data_out
 
