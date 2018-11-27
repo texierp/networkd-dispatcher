@@ -67,6 +67,9 @@ The scripts to be run on network changes are in subdirectories 'routable.d/',
 'SCRIPT_DIR'. The default value for 'SCRIPT_DIR' is
 '/etc/networkd-dispatcher:/usr/lib/networkd-dispatcher'.
 
+For information about the network operational states exposed by
+systemd, see networkctl(1).
+
 RESOURCES
 ---------
 
