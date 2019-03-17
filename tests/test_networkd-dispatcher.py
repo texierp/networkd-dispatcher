@@ -333,6 +333,7 @@ with patch.object(networkd_dispatcher.Dispatcher, "_interface_scan",
             monkeypatch.setattr(('networkd_dispatcher.Dispatcher'
                                  '.ifaces_by_name'), {'eth0': 1})
             caplog.clear()
+            caplog.set_level(logging.WARNING)
             self.dp.trigger_all()
             _, _, ex = caplog.record_tuples[0]
             assert ex == 'Error handling initial for interface 1'
