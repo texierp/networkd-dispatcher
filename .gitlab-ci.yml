@@ -14,7 +14,7 @@ stages:
 
 test-archlinux-py3.7:
   stage: tests
-  image: base/archlinux
+  image: archlinux/base
   before_script:
     - pacman -Sy
     - pacman -S --noconfirm python-tox gobject-introspection base-devel cairo
