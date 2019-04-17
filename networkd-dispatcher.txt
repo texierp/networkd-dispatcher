@@ -63,9 +63,9 @@ The systemd service reads '/etc/conf.d/networkd-dispatcher.conf' as an
 environment file for additional daemon arguments.
 
 The scripts to be run on network changes are in subdirectories 'routable.d/',
-'dormant.d/', 'no-carrier.d/', 'off.d/', 'carrier.d/', 'degraded.d/' inside
-'SCRIPT_DIR'. The default value for 'SCRIPT_DIR' is
-'/etc/networkd-dispatcher:/usr/lib/networkd-dispatcher'.
+'dormant.d/', 'no-carrier.d/', 'off.d/', 'carrier.d/', 'degraded.d/',
+'configured.d', 'configuring.d/' inside 'SCRIPT_DIR'. The default value for
+'SCRIPT_DIR' is '/etc/networkd-dispatcher:/usr/lib/networkd-dispatcher'.
 
 For information about the network operational states exposed by
 systemd, see networkctl(1).
